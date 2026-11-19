@@ -4,11 +4,22 @@ from app.config import ai_settings
 from app.prompts import list_activities
 from app.schemas import AIResponse, StudyRequest, GradeRequest, IncidentRequest
 from app import operations
+import os
 
 app = FastAPI(title='SmartEdu AI', version='3.0.0')
-app.add_middleware(CORSMiddleware,
-                   allow_origins=['http://localhost:4200', 'http://127.0.0.1:4200'],
-                   allow_credentials=False, allow_methods=['GET', 'POST'], allow_headers=['*'])
+origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 @app.get('/api/health')
 def health():
