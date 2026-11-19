@@ -16,8 +16,8 @@ async def study(input: StudyRequest) -> AIResponse:
     prompt = (context_from_md('alumno', input.activity,
               {'TOPIC': input.topic, 'SOURCE': input.sourceText or 'Sin material de apoyo',
                'CUSTOM': input.customInstructions or 'Sin instrucciones adicionales'})
-              if input.mode == 'context' else f'Elabora una actividad académica sobre: {input.topic}.')
-    return await run(prompt, input.mode, 1100, demo_study(input.topic, input.mode))
+              if input.mode == 'context' else f'Elabora un/una {input.activity} sobre: {input.topic}.')
+    return await run(prompt, input.mode, 2500, demo_study(input.topic, input.mode))
 
 async def grade(input: GradeRequest) -> AIResponse:
     prompt = (context_from_md('docente', input.activity,
@@ -25,9 +25,9 @@ async def grade(input: GradeRequest) -> AIResponse:
                'INSTRUCTIONS': input.instructions or 'Sin instrucciones originales',
                'CUSTOM': input.customInstructions or 'Sin instrucciones adicionales'})
               if input.mode == 'context' else f'Evalúa de forma general el siguiente trabajo sobre {input.topic}:\n{input.studentText}')
-    return await run(prompt, input.mode, 1600, demo_grade(input.mode))
+    return await run(prompt, input.mode, 2500, demo_grade(input.mode))
 
 async def incident(input: IncidentRequest) -> AIResponse:
     prompt = render('incident-with-context.txt' if input.mode == 'context' else 'incident-without-context.txt',
                     DESCRIPTION=input.description)
-    return await run(prompt, input.mode, 1100, demo_incident(input.description, input.mode))
+    return await run(prompt, input.mode, 2500, demo_incident(input.description, input.mode))

@@ -1,94 +1,117 @@
-# SmartEdu AI — Angular + Python (FastAPI)
+# SmartEdu AI
 
-Migración del proyecto original **SmartEdu AI Angular + .NET**: se mantiene Angular 20, las rutas `/alumno` y `/docente`, los cuatro archivos de prompts y los contratos HTTP. Se sustituye únicamente el backend .NET por Python + FastAPI.
+Aplicación educativa para comparar respuestas **con y sin contexto** mediante inteligencia artificial. Incluye tres módulos desarrollados con **Angular 20** y **Python/FastAPI**.
 
-**Python es un lenguaje de programación, no un sistema operativo.** Este proyecto puede ejecutarse en Windows, Linux o macOS con Python 3.10+ y Node.js compatible con Angular 20.
+## Módulos
 
-## Backend Python
+| Módulo | Ruta | Función |
+| --- | --- | --- |
+| Alumno | `/alumno` | Generación de resúmenes, ensayos, cuestionarios y guías de estudio. |
+| Docente | `/docente` | Evaluación y retroalimentación de trabajos mediante rúbricas. |
+| Incidentes | `/incidentes` | Clasificación orientativa de incidentes de TI. |
 
-En terminal, desde `backend/`:
+## Tecnologías
+
+- **Frontend:** Angular 20, TypeScript y `marked` para visualizar Markdown.
+- **Backend:** Python, FastAPI, HTTPX y archivos Markdown para instrucciones y contexto.
+- **Proveedores de IA:** Groq, Gemini y DeepSeek.
+- **Modo demo:** respuestas simuladas sin llamadas a servicios de IA.
+
+## Estructura del proyecto
+
+```text
+frontend/
+└── src/app/
+    ├── models/                 # Tipos e interfaces
+    ├── services/               # Comunicación con FastAPI
+    ├── shared/                 # Markdown y panel de resultados
+    └── pages/
+        ├── alumno/
+        ├── docente/
+        └── incidentes/
+
+backend/
+├── main.py                     # Endpoints
+├── app/
+│   ├── config.py               # Variables de entorno
+│   ├── ai_service.py           # Selección de proveedor
+│   ├── operations.py           # Lógica de los módulos
+│   ├── demo.py                 # Modo sin IA
+│   ├── prompts.py              # Lectura de instrucciones
+│   ├── schemas.py              # Modelos de datos
+│   └── providers/
+│       ├── gemini.py
+│       ├── deepseek.py
+│       ├── groq.py
+│       └── openai_compatible.py
+├── contexts/                   # Actividades y rúbricas Markdown
+└── prompts/                    # Plantillas de prompts
+```
+
+## Instalación
+
+**Requisitos:** Python 3.10+ y una versión de Node.js compatible con Angular 20.
+
+### 1. Backend
+
+Desde `backend/`:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 python -m uvicorn main:app --reload --port 5050
 ```
 
-En Linux/macOS, activar con `source .venv/bin/activate`; según el sistema usar `python3` en lugar de `python`.
+En Linux/macOS, activa el entorno con `source .venv/bin/activate` y copia el archivo con `cp .env.example .env`.
 
-Verifica `http://localhost:5050/docs` y `http://localhost:5050/api/health`.
+### 2. Configuración de IA
 
-## Frontend Angular
+Edita `backend/.env` y selecciona el proveedor:
 
-Desde `frontend/`, en otra terminal:
+```dotenv
+AI_PROVIDER=groq
+GROQ_API_KEY=TU_CLAVE
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+```
+
+También puedes seleccionar `AI_PROVIDER=gemini`, `AI_PROVIDER=deepseek` o `AI_PROVIDER=demo`. Para cada proveedor real, configura sus variables `*_API_KEY`, `*_MODEL` y `*_BASE_URL` siguiendo `.env.example`.
+
+> **Importante:** el modo `demo` no utiliza IA. Nunca publiques tu archivo `.env` ni las claves API.
+
+### 3. Frontend
+
+En otra terminal, desde `frontend/`:
 
 ```powershell
 npm install
 npm start
 ```
 
-Abre `http://localhost:4200/alumno` o `http://localhost:4200/docente`. El proxy de Angular apunta a `http://localhost:5050`.
+Abre `http://localhost:4200`. Angular redirige las solicitudes `/api` al backend local mediante el proxy de desarrollo.
 
-## Sin conexión a Gemini (modo demo)
+## API
 
-Si **no** defines `GEMINI_API_KEY`, el backend devuelve respuestas didácticas SIMULADAS; no son resúmenes ni calificaciones reales. La instalación inicial de Python/Node y paquetes sí requiere conexión o caché previa.
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/health` | Estado y proveedor configurado. |
+| `GET` | `/api/activities/{module}` | Actividades disponibles. |
+| `POST` | `/api/study/generate` | Generación de material de estudio. |
+| `POST` | `/api/grade/evaluate` | Evaluación de trabajos. |
+| `POST` | `/api/incidents/classify` | Clasificación de incidentes. |
 
-## Con Gemini real
+Documentación interactiva: `http://localhost:5050/docs`.
 
-En PowerShell, **antes de iniciar el backend**:
+## Cambios principales
 
-```powershell
-$env:GEMINI_API_KEY="TU_CLAVE_PRIVADA"
-$env:GEMINI_MODEL="MODELO_HABILITADO_EN_TU_CUENTA"
-python -m uvicorn main:app --reload --port 5050
-```
+- **Backend modular:** endpoints separados de la lógica, los proveedores y el modo demo.
+- **Conexiones reutilizables:** DeepSeek y Groq comparten un cliente HTTP compatible con OpenAI; Gemini tiene su propio adaptador.
+- **Frontend modular:** páginas, modelos, servicios y componentes compartidos.
+- **Markdown renderizado:** los resultados muestran títulos, listas, tablas y formato sin exponer los símbolos Markdown; los prompts originales siguen disponibles para consulta.
+- **Configuración centralizada:** cambio de proveedor mediante `.env`, sin modificar los endpoints.
 
-En Linux/macOS: `export GEMINI_API_KEY=...` y `export GEMINI_MODEL=...`.
+## Consideraciones
 
-El backend usa la API REST `generateContent`. Verifica en Google AI Studio qué modelo admite tu clave y la operación; no todos los modelos listados garantizan acceso efectivo. No publiques la clave ni la coloques en Angular.
-
-## Endpoints
-
-- `GET /api/health`
-- `POST /api/study/generate`: `{ "topic": "El ciclo del agua", "sourceText": "", "workType": "summary", "mode": "context" }`
-- `POST /api/grade/evaluate`: `{ "topic": "El ciclo del agua", "studentText": "...", "instructions": "", "mode": "context" }`
-
-Ambos POST responden `{ "mode": "context", "provider": "demo|gemini", "result": "...", "promptUsed": "..." }`.
-
-## Consideraciones educativas
-
-Usa trabajos ficticios o anonimizados. La evaluación de IA es **sugerida** y debe ser revisada por el docente; no se debe usar como calificación automática definitiva.
-
-
-## SmartApps — Clasificador de incidentes
-
-Ruta Angular: `http://localhost:4200/incidentes`
-Endpoint Python: `POST /api/incidents/classify`
-
-Ejemplo de petición:
-```json
-{"description":"La VPN no funciona para 20 personas desde las 8:00", "mode":"context"}
-```
-
-Modos: `simple` (instrucción genérica) y `context` (categorías, impacto, urgencia, evidencias y escalamiento).
-
-Sin `GEMINI_API_KEY`, el clasificador usa reglas locales basadas en palabras clave; **no es IA** y no asigna una prioridad definitiva. Con una API Key configurada, consulta Gemini con el modelo definido en `GEMINI_MODEL`. No almacena tickets ni datos y no sustituye a una mesa de ayuda.
-
-### Actividad sugerida
-1. Abrir `/incidentes` y describir una falla de VPN, una impresora o un posible phishing.
-2. Comparar los resultados sin contexto y con contexto.
-3. Identificar información faltante (usuarios afectados, tiempo, servicio crítico).
-4. Debatir cómo cambiaría la clasificación al contar con esos datos.
-
-
-## Configuración .env y actividades Markdown
-
-1. En `backend`, copia `.env.example` como `.env`. Escribe `GEMINI_API_KEY` y `GEMINI_MODEL` (modelo que soporte `generateContent` para tu cuenta). Nunca compartas `.env`.
-2. Instala dependencias: `pip install -r requirements.txt`. Inicia: `python -m uvicorn main:app --reload --port 5050`.
-3. En `frontend`: `npm install` y `npm start`.
-4. Visita `/alumno` y `/docente`. Cada uno muestra un selector de tareas que lee `GET /api/activities/{module}`.
-5. Las plantillas están en `backend/contexts/alumno` y `backend/contexts/docente`. Variables admitidas: `{{TOPIC}}`, `{{SOURCE}}`, `{{CUSTOM}}`, `{{STUDENT_TEXT}}`, `{{INSTRUCTIONS}}` según plantilla.
-6. La tarea **personalizada** habilita un campo de texto. El modo **sin contexto** conserva un prompt general; el modo **con contexto** carga el Markdown elegido.
-7. Para agregar una actividad nueva hay que registrar su ID y nombre en `ACTIVITY_NAMES` de `backend/main.py`, además de crear el `.md`. No se permite cargar rutas arbitrarias.
-8. Sin clave, el sistema devuelve **simulaciones**. Las llamadas reales requieren conexión y un modelo válido.
+Proyecto con fines **educativos y de demostración**. Las respuestas generadas por IA pueden contener errores; las evaluaciones académicas requieren revisión docente y las clasificaciones de incidentes no sustituyen los procedimientos de soporte. Usa datos ficticios o anonimizados.
