@@ -1,0 +1,23 @@
+<section class="card">
+    <h2>👩‍🎓 Generador de trabajos — Alumno</h2>
+    <p>Compara un prompt general con otro que incluye contexto académico.</p>
+    <label>Tema</label><input [(ngModel)]="topic" maxlength="300" placeholder="Ej. El ciclo del agua">
+    <label>Actividad</label><select [(ngModel)]="activity">
+        <option *ngFor="let item of activities" [value]="item.id">{{item.name}}</option>
+    </select>
+    <label *ngIf="activity==='personalizada'">Describe la tarea personalizada</label><textarea
+        *ngIf="activity==='personalizada'" [(ngModel)]="customInstructions" maxlength="4000" rows="4"
+        placeholder="Ej. Crea un mapa conceptual..."></textarea>
+    <label>Material de apoyo (opcional)</label><textarea [(ngModel)]="sourceText" maxlength="12000" rows="5"
+        placeholder="Pega aquí tus apuntes..."></textarea>
+    <div class="actions"><button (click)="generate('simple')" [disabled]="loading || !topic.trim()">Sin
+            contexto</button><button class="primary" (click)="generate('context')"
+            [disabled]="loading || !topic.trim()">Con contexto</button><button class="outline" (click)="compare()"
+            [disabled]="loading || !topic.trim()">Comparar ambos</button></div>
+    <p *ngIf="loading">Procesando…</p>
+    <p class="error" *ngIf="error">{{error}}</p>
+</section>
+<section class="grid">
+    <app-result-panel title="Sin contexto" [response]="simple" emptyMessage="Sin resultado todavía"></app-result-panel>
+    <app-result-panel title="Con contexto" [response]="context" emptyMessage="Sin resultado todavía"></app-result-panel>
+</section>

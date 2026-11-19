@@ -1,0 +1,18 @@
+<section class="card">
+    <h2>🛠️ SmartApps · Clasificador de incidentes</h2>
+    <p>Compara una clasificación general con otra guiada por categorías, impacto y urgencia. No crea tickets reales.</p>
+    <label>Descripción del incidente</label><textarea [(ngModel)]="description" maxlength="6000" rows="7"
+        placeholder="Ej. El servicio VPN no funciona para 20 colaboradores desde las 8:00..."></textarea>
+    <div class="actions"><button (click)="classify('simple')" [disabled]="loading || description.trim().length<5">Sin
+            contexto</button><button class="primary" (click)="classify('context')"
+            [disabled]="loading || description.trim().length<5">Con contexto</button><button class="outline"
+            (click)="compare()" [disabled]="loading || description.trim().length<5">Comparar ambos</button></div>
+    <p *ngIf="loading">Clasificando…</p>
+    <p class="error" *ngIf="error">{{error}}</p>
+</section>
+<section class="grid">
+    <app-result-panel title="Sin contexto" [response]="simple" emptyMessage="Sin resultado todavía"></app-result-panel>
+    <app-result-panel title="Con contexto" [response]="context" emptyMessage="Sin resultado todavía"></app-result-panel>
+</section>
+<p class="notice">⚠️ Modo demostración: usa reglas de palabras clave, no inteligencia artificial. Con Gemini las
+    respuestas son sugerencias y requieren validación humana. No introduzcas contraseñas ni datos personales.</p>

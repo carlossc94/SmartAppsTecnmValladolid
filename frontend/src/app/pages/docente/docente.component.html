@@ -1,0 +1,31 @@
+<section class="card">
+    <h2>👨‍🏫 Evaluador de resúmenes — Docente</h2>
+    <p>La IA propone una evaluación, pero la decisión final es del docente.</p>
+    <label>Tema del resumen</label><input [(ngModel)]="topic" maxlength="300"
+        placeholder="Ej. Arquitectura de software">
+    <label>Actividad docente</label><select [(ngModel)]="activity">
+        <option *ngFor="let item of activities" [value]="item.id">{{item.name}}</option>
+    </select>
+    <label *ngIf="activity==='personalizada'">Describe la tarea personalizada</label><textarea
+        *ngIf="activity==='personalizada'" [(ngModel)]="customInstructions" maxlength="4000" rows="4"
+        placeholder="Ej. Identifica errores conceptuales..."></textarea>
+    <label>Instrucciones originales del trabajo (opcional)</label><textarea [(ngModel)]="instructions" maxlength="3000"
+        rows="3" placeholder="Ej. Explicar componentes y agregar un ejemplo..."></textarea>
+    <label>Resumen entregado por el alumno</label><textarea [(ngModel)]="studentText" maxlength="12000" rows="8"
+        placeholder="Pega el resumen que se evaluará..."></textarea>
+    <div class="actions"><button (click)="generate('simple')"
+            [disabled]="loading || !topic.trim() || !studentText.trim()">Evaluar sin contexto</button><button
+            class="primary" (click)="generate('context')"
+            [disabled]="loading || !topic.trim() || !studentText.trim()">Evaluar con rúbrica</button><button
+            class="outline" (click)="compare()" [disabled]="loading || !topic.trim() || !studentText.trim()">Comparar
+            evaluaciones</button></div>
+    <p *ngIf="loading">Evaluando…</p>
+    <p class="error" *ngIf="error">{{error}}</p>
+</section>
+<section class="grid">
+    <app-result-panel title="Sin contexto" [response]="simple" emptyMessage="Sin evaluación todavía"></app-result-panel>
+    <app-result-panel title="Con contexto y rúbrica" [response]="context" emptyMessage="Sin evaluación todavía">
+    </app-result-panel>
+</section>
+<p class="notice">⚠️ Las calificaciones de IA son sugerencias formativas. No son decisiones automáticas ni pruebas de
+    autoría. Usa textos ficticios o anonimizados.</p>
